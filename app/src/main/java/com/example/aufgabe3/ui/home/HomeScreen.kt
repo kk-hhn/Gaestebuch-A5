@@ -1,6 +1,7 @@
 package com.example.aufgabe3.ui.home
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -8,10 +9,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.aufgabe3.model.BookingEntry
 import com.example.aufgabe3.viewmodel.SharedViewModel
+import androidx.compose.foundation.lazy.items
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +24,7 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel
 ) {
     val bookingsEntries by sharedViewModel.bookingsEntries.collectAsState()
-
+    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     Scaffold(
         topBar = {
             TopAppBar(
@@ -38,9 +42,26 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // TODO inform the user if no bookingsEntries otherwise LazyColumn for bookingsEntries
+            if(bookingsEntries!=emptyList<BookingEntry>()){
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(bookingsEntries) { item ->
+                        BookingEntryItem(item,
+                            {
+                                sharedViewModel.deleteBookingEntry(item)
+                            }, dateFormatter
+                        )
+                    }
+                }
+            }else{
+                Text(
+                    text= "No Entries recorded."
+                )
+            }
+
+
         }
     }
 }
@@ -48,7 +69,8 @@ fun HomeScreen(
 @Composable
 fun BookingEntryItem(
     booking: BookingEntry,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    formatter: DateTimeFormatter
 ) {
     Card(
         modifier = Modifier
@@ -64,11 +86,11 @@ fun BookingEntryItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = // TODO display booking name,
+                    text = booking.name,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = // TODO display date in right format,
+                    text = formatter.format(booking.arrivalDate).toString()+" - "+ formatter.format(booking.departureDate).toString(),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
